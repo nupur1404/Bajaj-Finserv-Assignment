@@ -8,24 +8,53 @@ const app = express();
 app.use(bodyParser.json());
 
 
+// const swaggerOptions = {
+//   definition: {
+//     openapi: "3.0.0",
+//     info: {
+//       title: "VIT Full Stack Question API",
+//       version: "1.0.0",
+//       description:
+//         "REST API to process arrays and return numbers, alphabets, and special characters",
+//     },
+//     // servers: [
+//     //   { url: "http://localhost:3000" }, 
+//     // ],
+//     servers: [{ url: "https://testbfhl-a3ghh6i23-nupur1404s-projects.vercel.app" }]
+//   },
+// //   apis: ["./index.js"], 
+//   apis: ["./api/bfhl.js"]
+// };
+
+// const swaggerSpec = swaggerJsdoc(swaggerOptions);
+// app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
 const swaggerOptions = {
   definition: {
     openapi: "3.0.0",
     info: {
       title: "VIT Full Stack Question API",
       version: "1.0.0",
-      description:
-        "REST API to process arrays and return numbers, alphabets, and special characters",
-    },
-    servers: [
-      { url: "http://localhost:3000" }, 
-    ],
+      description: "REST API with Swagger deployed on Vercel"
+    }
   },
-  apis: ["./index.js"], 
+  apis: ["./index.js"] // Pulls annotations from bfhl.js
 };
 
 const swaggerSpec = swaggerJsdoc(swaggerOptions);
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
+
+app.use("/", (req, res, next) => {
+  const protocol = req.headers["x-forwarded-proto"] || req.protocol;
+  const host = req.get("host");
+
+  swaggerSpec.servers = [
+    { url: `${protocol}://${host}` }
+  ];
+
+  swaggerUi.setup(swaggerSpec)(req, res, next);
+}, swaggerUi.serve);
+
 
 
 app.post("/bfhl", (req, res) => {
@@ -88,8 +117,10 @@ app.post("/bfhl", (req, res) => {
   }
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(` Server running at http://localhost:${PORT}`);
-  console.log(` Swagger Docs available at http://localhost:${PORT}/api-docs`);
-});
+module.exports = app;
+
+// const PORT = process.env.PORT || 3000;
+// app.listen(PORT, () => {
+//   console.log(` Server running at http://localhost:${PORT}`);
+//   console.log(` Swagger Docs available at http://localhost:${PORT}/api-docs`);
+// });
